@@ -1,0 +1,158 @@
+package com.zzlh.auth.util;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.Key;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+
+import javax.crypto.Cipher;
+
+import org.springframework.security.crypto.codec.Base64;
+
+public class RSAUtils {
+
+	private static final String algorithm = "RSA";
+	private static final String privateKey1 = "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDNnJaDdyqYH/zfx+sTOKkFm9ZQR9Ewxe+hDS1zw8l2v/qy5ALf3k/uy0IAQgJQs6z3NfMYcquyqj4anowLdPi0vQkgv8D2QAAUdJ/p0pL8cySY7VC5FdSpW6fn8zsIXCBnwqbmREoM3G/Wcie0ForD9Gi0fQBImpd6GjN8Ha61S7LdNMi4UM5ckCcVZk8nMeY1sLPm5V+KRPk58r1rRf56h9shSHAwesQ6YxsssBJf1s6aACqoqw033S72mliwaUbxcYQbgOhNfmND+bCYA1bXAMKbuey9W8F++tjbKkZ5yNknTkzuenFTwstWjmtLtBsFAXyNaiE2yQg3kyx0NldRAgMBAAECggEBAI0lSlmzK2VEyDXiqmgGhFkaUnPH6T3fExHu1t3acGl5fqLhTWva0+psU8GTjr1RqpIF0fxdc6pxnbJuVlrjEHwaLLLzj4Y8BxIDwWclK8vrSxtEBh8YcmVUSx46ZbLmc0RnZmU6Sc8sYAXJVaIVu2qrVFlaWiB9JzEl3WP9iFphAbXUywoan6xzGxxzeG5RMHH8JzP0MPK+nGvvrSFMHcdGv0ocfd6SL+HzgSJQVlDiCcfl3LuNNF312iqqiBFLZwdh86DxRpARqb6XM2mBlAFjCdcUMbRovRqlzPuGAhLJpPgAuwlLv0NdWOlxtzw26Xjp+lOCvFLcLRw3UQaFxeUCgYEA+S99vNKFO/CSja3vGTb+LRoecYL/MnMCpwf1Gm8kR1M51x081jUGfV8cA9G4nY442/A9i73OfsYgtshqdI3OyKHUkmFHDi9kvix8F7rYJutXo/Az/nGSBSmtxUEvh6uj8x1Fz0DNQ+LifUD6YoazRDvi9vfMFUvr/dob6ywr1EsCgYEA0zwLCptFgp6YdP6c/qztkxzamr+PxRE1BZ45mywa5HIoSqZpuu8uEUmXy8W7DOhI+J8HyFQ0wCL1byK3maOWjFa4Z80ljr9z1MlHLN6qUQbcIzdDzipQtj4OjFYDy5BjnkULB1CUO9wFS8OLKjkc01mE1l3XRNnaM4JgUmGxqVMCgYEA0TZ+azqVgm3Jngqa5KC3Z0a2qLdDbCgD4hlcQIVwADJwLZvuqCp8+GYSL2K1jhMKyh46jkkeRnIypUQ/nPwy0WCOCRiDf/VqsADJb2MAeCy/uHTEMq1H2+3SZ/sC3PXPAR9irU/LB2RGpMMZdf+CI5fkR1Zlkrvbt5aYOisr4WECgYB5HMwX4L8SDWzMZ9AMFYqB9uFAKOV90EfeWMIevkMNCIchhhjJHaoEL3XhWBXPaL+uDUChE+bK40Bl4Dn01V7USESi/3SxTARV1LICgAiXPJ+rcVxnMMvmMd6ViBvU84yqiluwbfsP9y7yKcP5CZYFeCY54sQyrdX2AqLHmUwMEQKBgCfGs3emFs3THIt7yGzsMD/5JK7Qmh4TnGWdHp6thLZgSliniaqWG7gblTGHvp8i2o4Hax9LEh10Ey7MCUIxzcb2QoYdakzmfQ0SisnnZDdP+0uuEglf9oqP/EHN2j5NxxlSpCO51iF8GMxP79f5BMfpIk26Z1sxrj4QzLlnoCZh"; 
+	private static final String publicKey1 = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzZyWg3cqmB/838frEzipBZvWUEfRMMXvoQ0tc8PJdr/6suQC395P7stCAEICULOs9zXzGHKrsqo+Gp6MC3T4tL0JIL/A9kAAFHSf6dKS/HMkmO1QuRXUqVun5/M7CFwgZ8Km5kRKDNxv1nIntBaKw/RotH0ASJqXehozfB2utUuy3TTIuFDOXJAnFWZPJzHmNbCz5uVfikT5OfK9a0X+eofbIUhwMHrEOmMbLLASX9bOmgAqqKsNN90u9ppYsGlG8XGEG4DoTX5jQ/mwmANW1wDCm7nsvVvBfvrY2ypGecjZJ05M7npxU8LLVo5rS7QbBQF8jWohNskIN5MsdDZXUQIDAQAB";
+	
+	/**
+	 * @Description 生成公用key和私有key
+	 * @return 返回key对
+	 */
+	public static KeyPair generateKey() {
+		KeyPairGenerator keyGen = null;
+		try {
+			keyGen = KeyPairGenerator.getInstance(algorithm);
+			keyGen.initialize(2048);
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		return keyGen.generateKeyPair();
+	}
+
+	/**
+	 * @Description 获取私钥字符串
+	 * @param keyPair
+	 * @return
+	 */
+	public static String getPrivateKeyBase64(KeyPair keyPair) {
+		return new String(Base64.encode(keyPair.getPrivate().getEncoded()));
+	}
+	
+	/**
+	 * @Description 获取公钥字符串
+	 * @param keyPair
+	 * @return
+	 */
+	public static String getPublicKeyBase64(KeyPair keyPair) {
+		return new String(Base64.encode(keyPair.getPublic().getEncoded()));
+	}
+	
+	/**
+	 * @Description 根据公钥字节码获取公钥
+	 * @param encryptedPublicKey 公钥字节码
+	 * @return 公钥
+	 * @throws Exception
+	 */
+	public static PublicKey getPublicKey(byte[] encryptedPublicKey) throws Exception {
+		return KeyFactory.getInstance(algorithm).generatePublic(new X509EncodedKeySpec(encryptedPublicKey));
+	}
+
+	/**
+	 * @Description 根据私钥字节码获取私钥
+	 * @param encryptedPrivateKey 私钥字节码
+	 * @return 私钥
+	 * @throws Exception
+	 */
+	public static PrivateKey getPrivateKey(byte[] encryptedPrivateKey) throws Exception {
+		return KeyFactory.getInstance(algorithm).generatePrivate(new PKCS8EncodedKeySpec(encryptedPrivateKey));
+	}
+	
+	/**
+	 * @Description 对字节码进行加密,签名
+	 * @param key 公钥,私钥
+	 * @param data 原始数据字节码
+	 * @return 加密后字节码
+	 */
+	public static byte[] encrypt(Key key, byte[] data) {
+		try {
+			final Cipher cipher = Cipher.getInstance(algorithm);
+			cipher.init(Cipher.ENCRYPT_MODE, key);
+			return cipher.doFinal(data);
+		} catch (Exception ex) {
+		}
+		return null;
+	}
+	
+	/**
+	 * @Description 私钥解密,公钥验签
+	 * @param key 公钥,私钥
+	 * @param encryptedData 加密数据字节码
+	 * @return 原始数据字节码
+	 */
+	public static byte[] decrypt(Key key, byte[] encryptedData) {
+		try {
+			final Cipher cipher = Cipher.getInstance(algorithm);
+			cipher.init(Cipher.DECRYPT_MODE, key);
+			return cipher.doFinal(encryptedData);
+		} catch (Exception ex) {
+		}
+		return null;
+	}
+
+	public static KeyStore getKeyStore(String storepass, String keystorePath)
+	        throws IOException {
+	    InputStream inputStream = null;
+	    try {
+	        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+	        inputStream = new FileInputStream(keystorePath);
+	        keyStore.load(inputStream, storepass.toCharArray());
+	        return keyStore;
+	    } catch (KeyStoreException | NoSuchAlgorithmException
+	            | CertificateException | IOException e) {
+	        e.printStackTrace();
+	    } finally {
+	        if (null != inputStream) {
+	            inputStream.close();
+	        }
+	    }
+	    return null;
+	}
+	
+	public static void main(String[] args) throws Exception {
+		/*byte[] data = "hello cryptography".getBytes();
+		final KeyPair key = generateKey();
+		String privateKey2 = getPrivateKeyBase64(key);
+		System.out.println(privateKey2);
+		String publicKey2 = getPublicKeyBase64(key);
+		System.out.println(publicKey2);
+		PrivateKey privateKey = getPrivateKey(Base64.decode(privateKey2.getBytes()));
+		PublicKey publicKey = getPublicKey(Base64.decode(publicKey2.getBytes()));
+		byte[] encrypted = RSAUtils.encrypt(publicKey, data);
+		byte[] decrypted = RSAUtils.decrypt(privateKey, encrypted);
+		System.out.println("original: " + new String(data));
+		System.out.println("encrypted: " + new String(encrypted));
+		System.out.println("签名解d: " + new String(decrypted));*/
+		
+		KeyStore keyStore = getKeyStore("changeit","D:\\temp\\cas\\cas.keystore");
+		Key key2 = keyStore.getKey("cas", "changeit".toCharArray());
+		String privateStr = new String(Base64.encode(key2.getEncoded()));
+		System.out.println(privateStr);
+		Certificate certificate = keyStore.getCertificate("cas");
+		PublicKey publicKey = certificate.getPublicKey();
+		
+		System.out.println(certificate.toString());
+	}
+}
